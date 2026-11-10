@@ -36,7 +36,6 @@ async def create_review(review_data: ReviewCreate, user_id: int, session: AsyncS
 
     review_dict.pop("user_id", None)
 
-    print(f"Review data in create: {review_data} {user_id}")
     # Create the database model.
     # user_id is supplied separately by the backend, not the client.
     db_review = Review(**review_dict, user_id = user_id)
@@ -47,7 +46,7 @@ async def create_review(review_data: ReviewCreate, user_id: int, session: AsyncS
     # This transaction is not committed yet.
     await session.flush()
 
-    # Reload the review with its associated user.
+    # Retrieve the created review with its associated user.
     statement = _review_query().where(Review.id == db_review.id)
     result = await session.exec(statement)
 
@@ -86,5 +85,7 @@ async def get_reviews_by_user_id(user_id: int, session: AsyncSession) -> list[Re
     results = await session.exec(statement)
     return results.all()
 
+# -------------------------------------------
 # TODO: [Update Review]
 # TODO: [Delete Review] 
+# -------------------------------------------

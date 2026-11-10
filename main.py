@@ -1,7 +1,11 @@
 from fastapi import FastAPI
 from api import user, product, category, review
 
-app = FastAPI()
+app = FastAPI(
+    title = "E-commerce App",
+    description = "Product Catalog and Inventory Management API",
+    version = "1.0.0"
+)
 
 app.include_router(user.router, prefix="/api/v1/users", tags=["Users"])
 app.include_router(category.router, prefix="/api/v1/categories", tags=["Categories"])

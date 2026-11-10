@@ -12,6 +12,10 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from .config import settings
 
+# --------------------------------------
+# DATABASE ENGINE
+# --------------------------------------
+
 # Create the asynchronous database engine.
 # The engine manages database connectivity and the connection pool.
 # Connections are established when required, not all at startup.
@@ -20,6 +24,11 @@ engine = create_async_engine(
     echo = True, # Log SQL statements (only for development env).
     pool_pre_ping = True # Check pooled connections before using them.
 )
+
+# --------------------------------------
+# ASYNC SESSION FACTORY
+# --------------------------------------
+
 
 # Creating async session for managing the pool of DB connections.
 # It creates a reusable factory for asynchronous database sessions.
@@ -31,12 +40,25 @@ AsyncSessionFactory = async_sessionmaker(
     expire_on_commit = False
 )
 
+# --------------------------------------
+# DATABASE SESSION DEPENDENCY
+#---------------------------------------
+
 # Generating sessions from Session Factory
 async def get_session():
+    """
+    Provides a database session to FastAPI endpoints.
+
+    Each request gets its own session.
+    The session is automatically closed after use.
+
+    CRUD functions currently own transaction commits.
+    """
     async with AsyncSessionFactory() as session:
         try:
             yield session
             await session.commit()
         except:
+            # Rollback any failed or uncommitted transaction.
             await session.rollback()
             raise

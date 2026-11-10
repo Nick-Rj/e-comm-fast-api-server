@@ -7,7 +7,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from core.db import get_session
 
 # Importing methods for CRUD operations
-from crud import crud_product
+from crud import crud_product, crud_category
 
 # Importing schemas for API calls
 from schema import ProductCreate, ProductPublic, APIResponse
@@ -16,7 +16,9 @@ from schema import ProductCreate, ProductPublic, APIResponse
 # Instead of calling each Product endpoint in the main.py, only this router will be called with a proper prefix.
 router = APIRouter()
 
-# Creating endpoints for the Product
+# -----------------------------------------
+# Create Product
+# -----------------------------------------
 
 @router.post(
     "/create_product",
@@ -29,14 +31,25 @@ async def create_new_product(
     session: AsyncSession = Depends(get_session)
 ):
     """
-    Create a new product.
+    Creates a new product associated with an existing category.
     """
+    
+    # Verify that the supplied category exists.
+    category = await crud_category.fetch_category_by_id(product_data.category_id, session)
+
+    if not category:
+        raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail=f"Category with ID '{product_data.category_id}' not found!")
+
     new_product = await crud_product.create_product(product_data, session)
 
     return APIResponse(
         message = "New Product Created Successfully!",
         data = new_product
     )
+
+# ------------------------------------
+# Fetch All Products
+# ------------------------------------
 
 @router.get(
     "/",
@@ -46,14 +59,18 @@ async def fetch_all_products(
     session: AsyncSession = Depends(get_session)
 ):
     """
-    Get a list of all products.
+    Retrieves all products with their related category and reviews.
     """
     all_products = await crud_product.fetch_all_products(session)
 
     return APIResponse(
-        message = "All products fetched!", 
+        message = "All products fetched successfully!", 
         data = all_products
     )
+
+# -----------------------------------------
+# Fetch Product by ID
+# -----------------------------------------
 
 @router.get(
     "/{product_id}",
@@ -64,18 +81,21 @@ async def fetch_product_by_id(
     session: AsyncSession = Depends(get_session)
 ):
     """
-    Get details for a specific product by ID.
+    Retrieves product details using the product ID.
     """
+
     product = await crud_product.fetch_product_by_id(product_id, session)
 
     if not product:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Product with ID {product_id} not available")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Product with ID {product_id} not found!")
     
     return APIResponse(
         message = "Product details fetched successfully!", 
         data = product
     )
 
+# ---------------------------------------
 # TODO: Update Product
 # TODO: Fetch Products by Category
 # TODO: Delete a Product
+# ---------------------------------------

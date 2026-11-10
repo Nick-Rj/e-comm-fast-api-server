@@ -42,11 +42,12 @@ async def create_product(product_data: ProductCreate, session: AsyncSession) -> 
     # Add the product to the current database session.
     session.add(db_product)
 
-    # Execute pending INSERT operations and retrieve generated values.
+    # Execute pending SQL statements, including the INSERT.
+    # The generated primary key becomes available after flushing.
     # The transcation is not committed yet.
     await session.flush()
 
-    # Retrive the created product along with its relationship.
+    # Retrive the newly created product along with its relationships.
     statement = _product_query().where(Product.id == db_product.id)
     result = await session.exec(statement)
 

@@ -8,6 +8,10 @@ from core.security import verify_password, hash_password
 
 router = APIRouter()
 
+# ---------------------------------------------
+# Create User
+# ---------------------------------------------
+
 @router.post(
     "/create_user", 
     status_code = status.HTTP_201_CREATED, 
@@ -18,9 +22,12 @@ async def create_new_user(
     session: AsyncSession = Depends(get_session)
 ):
     """
-    Create a new user.
+    Creates a new user account.
+
+    Checks username availability, hashes the password, and persists the user in the database.
     """
-    print(f"request data: {user_data} -> {session}")
+
+    # Checks whether the username is already registered.
     user = await crud_user.fetch_user_by_username(user_data.username, session)
 
     if user:
@@ -30,13 +37,17 @@ async def create_new_user(
         )
 
     hashed_password = hash_password(user_data.password)
+
     created_user = await crud_user.create_user(user_data, hashed_password, session)
-    print(f"Created user: {created_user}")
+
     return APIResponse(
         message= "User signed up sucessfully!", 
         data= created_user
         )
 
+# -------------------------------------
+# Fetch User by ID
+# -------------------------------------
 
 @router.get("/id/{user_id}", response_model = APIResponse[UserPublic])
 async def get_user_by_id(
@@ -44,7 +55,7 @@ async def get_user_by_id(
     session: AsyncSession = Depends(get_session)
 ):
     """
-    Fetch user details by user ID.
+    Fetches user details using the user's primary key, i.e., user_id.
     """
     user_data = await crud_user.fetch_user_by_id(user_id, session)
 
@@ -59,6 +70,9 @@ async def get_user_by_id(
         data = user_data
     )
 
+# -------------------------------------
+# Fetch User by Username
+# -------------------------------------
 
 @router.get("/username/{username}", response_model = APIResponse[UserPublic])
 async def get_user_by_username(
@@ -66,8 +80,9 @@ async def get_user_by_username(
     session: AsyncSession = Depends(get_session)
 ):
     """
-    Fetch user details by username.
+    Fetches user details using their username.
     """
+    
     user_data = await crud_user.fetch_user_by_username(username, session)
 
     if not user_data:

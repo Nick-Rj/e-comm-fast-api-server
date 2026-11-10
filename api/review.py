@@ -7,9 +7,17 @@ from schema import ReviewCreate, ReviewPublic, APIResponse
 
 router = APIRouter()
 
+# -------------------------------------------
+# Schema for Review with User ID
+# -------------------------------------------
+
 # user_id must be extracted from a JWT token after the user logs in.
 class ReviewCreateWithUser(ReviewCreate):
     user_id: int
+
+# -------------------------------------------
+# Create Review
+# -------------------------------------------
 
 @router.post("/create_review", status_code = status.HTTP_201_CREATED, response_model = APIResponse[ReviewPublic])
 async def create_new_review(
@@ -38,6 +46,9 @@ async def create_new_review(
         data = created_review
     )
 
+# -----------------------------------------
+# Fetch Reviews by Product ID
+# -----------------------------------------
 
 @router.get("/reviews/{product_id}", response_model = APIResponse[list[ReviewPublic]])
 async def get_reviews_by_product_id(
@@ -45,11 +56,18 @@ async def get_reviews_by_product_id(
     session: AsyncSession = Depends(get_session)
 ):
     """
-    Fetching all the reviews for a product.
+    Retrieves all reviews associated with a product.
+    Returns an empty list if no reviews exist.
     """
+
     reviews = await crud_review.get_reviews_by_product_id(product_id, session)
 
     return APIResponse(
         message = "Reviews fetched sucessfully!", 
         data = reviews
     )
+
+# --------------------------------
+# TODO: Update Review
+# TODO: Delete Review
+# --------------------------------

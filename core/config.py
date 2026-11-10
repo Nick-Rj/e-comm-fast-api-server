@@ -1,11 +1,12 @@
 # Configuration Management: Centralize application settings and database credentials
 
-# SecretStr prevents accidental exposure of all actual database URL when the settings object is printed or represented.
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # BaseSettings will fetch the data from configuration and env files.
 class Settings(BaseSettings):
+    
+    # SecretStr prevents accidental exposure of all actual database URL when the settings object is printed or represented.
     # Database URL is required and must come from the environment or the configured .env file.
     DATABASE_URL: SecretStr
 
@@ -17,5 +18,9 @@ class Settings(BaseSettings):
         extra = "ignore"
     )
 
-# Create a centralized settings instance.
+# ---------------------------------------
+# Centralized Settings Instance
+# ---------------------------------------
+
+# Create a centralized settings instance for application-wide use.
 settings = Settings()        

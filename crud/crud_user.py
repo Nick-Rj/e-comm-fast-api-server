@@ -9,11 +9,12 @@ from schema import UserCreate, UserRoleUpdate
 
 async def create_user(user_data: UserCreate, hashed_password: str, session: AsyncSession) -> User:
     """
-    Creates a new user with a hashed password.
+    Creates a new user with a securely hashed password.
+
+    The endpoint is responsible for hashing the raw password before passing it to this CRUD function.
     """
 
-    # Exclude the plain-text password received from the request.
-    # The endpoint hashes it and passes the hash separately.
+    # Exclude the plain-text password received from the API request.
     user_dict = user_data.model_dump(exclude=["password"])
 
     # Create the database model using the hashed password.
@@ -23,7 +24,7 @@ async def create_user(user_data: UserCreate, hashed_password: str, session: Asyn
     session.add(db_user)
     await session.commit()
 
-    # Reload database-generated values after insertion.
+    # Reload database-generated values after insertion, including the generated ID.
     await session.refresh(db_user)
 
     return db_user
@@ -74,7 +75,8 @@ async def update_user_role(user_data: UserRoleUpdate, session: AsyncSession) -> 
     if db_user is None:
         return None
 
-    # Update the existing database object.
+    # Update the existing ORM object.
+    # SQLAlchemy automatically tracks the modification.
     # No need to create a new User instance or call session.add().
     db_user.role = user_data.role
 

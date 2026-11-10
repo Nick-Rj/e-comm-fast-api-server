@@ -123,6 +123,10 @@ class ProductPublic(ProductBase):
     reviews: list[ReviewPublic] = Field(default_factory = list)
 
 
+# ---------------------------------------------
+# Generic API Response
+# ---------------------------------------------
+
 T = TypeVar("T")
 
 class APIResponse(BaseModel, Generic[T]):
